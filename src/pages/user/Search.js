@@ -13,7 +13,10 @@ import SectionOne from "./SectionOne";
 import "../../styles/Home.css";
 import axios from "axios";
 import SearchResult from "./SearchResult";
-import { getAllAiriports } from "../../api/FlightManagementService";
+import {
+  getAllAiriports,
+  getFlightBySearch,
+} from "../../api/FlightManagementService";
 import plane from "../../elements/plane.png";
 import { getUser } from "../../api/UserDetailsService";
 import { toast } from "react-toastify";
@@ -53,6 +56,18 @@ const Home = (props) => {
   // console.log(data.wa)
 
   // console.log(data)
+
+  useEffect(() => {
+    getUser(localStorage.getItem("USER_KEY"))
+      .then((res) => {
+        console.log(res.data);
+        // setUser(res.data);
+        dispatch(getLoggedUser(res.data));
+      })
+      .catch((err) => {
+        console.log("ff", err);
+      });
+  }, []);
 
   const dataHandler = (e) => {
     // console.log(e.target[0].value)
@@ -94,8 +109,8 @@ const Home = (props) => {
       if (data.way === "ROUND TRIP" && data.dateOfReturn === "") {
         alert("Input return date");
       } else {
-        axios
-          .post("http://LIN59016635:8089/search/userSearch", data)
+        // axios;
+        getFlightBySearch(data)
           .then((res) => {
             // console.log(data)
             // console.log(res.data)
@@ -170,7 +185,7 @@ const Home = (props) => {
             <div className="sm:rounded-md rounded-md  ">
               <div className="flightSearchBox pt-10">
                 <div
-                  className="flightsearch px-4 py-5 sm:p-6"
+                  className="flightsearch px-4 py-5 sm:px-32 sm:py-10 md:px-32 md:py-10 xs:px-32 xs:py-10"
                   style={{
                     backgroundImage:
                       "url('https://assets.codepen.io/3685267/res-react-dash-usage-card.svg')",
@@ -289,7 +304,7 @@ const Home = (props) => {
                     </div>
                     <div className="col-span- sm:col-span-1 md:mr-6 ml-11 mt-6 relative">
                       <img
-                        className="changeIcon"
+                        className="changeIcon hidden"
                         src={changeIcon}
                         onClick={switchCity}
                       />

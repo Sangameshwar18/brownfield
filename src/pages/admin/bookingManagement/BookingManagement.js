@@ -25,17 +25,18 @@ import {
   getBookingsByID,
   getBookingsByDate,
   getAllUsers,
-  getByAdminSearch
+  getByAdminSearch,
 } from "../../../api/BookingManagementService";
 import { getAllAiriports } from "../../../api/FlightManagementService";
 
 import { useDispatch, useSelector } from "react-redux";
 
 const BookingManagement = ({ noOfUser }) => {
-  
   const [tasksCompleted, setTasksCompleted] = useState();
 
-  const [airPorts, setAirPorts] = useState(useSelector((state) => state.admin.airports));
+  const [airPorts, setAirPorts] = useState(
+    useSelector((state) => state.admin.airports)
+  );
 
   const [bookings, setBookings] = useState([]);
 
@@ -43,17 +44,31 @@ const BookingManagement = ({ noOfUser }) => {
 
   const [clear, setClear] = useState(false);
 
-
   const dispatch = useDispatch();
 
   useEffect(() => {
     getAllBookings().then((res) => {
       if (res.status === 200) {
-        setBookings(res.data.sort(({ bookingId: a }, { bookingId: b }) => a - b));
+        setBookings(
+          res.data.sort(
+            (
+              { dateOfTravelling: a, flight: { departureTime: b } },
+              { dateOfTravelling: c, flight: { departureTime: d } }
+            ) =>
+              new Date(`${c} ${d}`).getTime() - new Date(`${a} ${b}`).getTime()
+          )
+        );
         // console.log('inside get all users', res.data)
         dispatch(
           GetAllBookings(
-            res.data.sort(({ bookingId: a }, { bookingId: b }) => a - b)
+            res.data.sort(
+              (
+                { dateOfTravelling: a, flight: { departureTime: b } },
+                { dateOfTravelling: c, flight: { departureTime: d } }
+              ) =>
+                new Date(`${c} ${d}`).getTime() -
+                new Date(`${a} ${b}`).getTime()
+            )
           )
         );
         setTasksCompleted(res.data.length);
@@ -83,7 +98,14 @@ const BookingManagement = ({ noOfUser }) => {
     // console.log('inside adminSearch', obj)
     getByAdminSearch(obj).then((res) => {
       // console.log('this is the resp from booking', res.data)
-      setBookings(res.data.sort(({ bookingId: a }, { bookingId: b }) => a - b));
+      setBookings(
+        res.data.sort(
+          (
+            { dateOfTravelling: a, flight: { departureTime: b } },
+            { dateOfTravelling: c, flight: { departureTime: d } }
+          ) => new Date(`${c} ${d}`).getTime() - new Date(`${a} ${b}`).getTime()
+        )
+      );
     });
   };
 
@@ -173,7 +195,6 @@ const BookingManagement = ({ noOfUser }) => {
         </div> */}
 
         <div className="p-2 w-screen justify-center align-center">
-
           <BookingTable
             clear={() => setClear(!clear)}
             searchBooking={adminSearch}

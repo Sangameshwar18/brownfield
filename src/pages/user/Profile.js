@@ -3,11 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import { getUser } from "../../api/UserDetailsService";
 import { useEffect } from "react";
+import { toast } from "react-toastify";
 import BookingTable from "../admin/bookingManagement/BookingTable";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllAiriports } from "../../api/FlightManagementService";
 import { GetAllAirports } from "../../redux/admin/adminActions";
 import { GetAllBookings } from "../../redux/admin/adminActions";
+import { updateUser } from "../../api/UserDetailsService";
 import {
   getAllBookings,
   getAllBookingsByUserId,
@@ -21,6 +23,7 @@ import { toast } from "react-toastify";
 
 const Profile = () => {
   const [tasksCompleted, setTasksCompleted] = useState();
+  const [disabled, setDisabled] = useState(true);
 
   const [airPorts, setAirPorts] = useState(
     useSelector((state) => state.admin.airports)
@@ -32,6 +35,7 @@ const Profile = () => {
   const [bookings, setBookings] = useState([]);
 
   const [users, setUsers] = useState(useSelector((state) => state.user.logged));
+  const [trueUser, setUser] = useState(useSelector((state) => state.user.logged));
   console.log(useSelector((state) => state.user.logged));
 
   const [clear, setClear] = useState(false);
@@ -47,26 +51,31 @@ const Profile = () => {
 
   const [checkIn, setCheckIn] = useState(false);
 
-  const handleCheckIn = (bookingId) => {
-    var tmp = false;
-    postCheckIn(bookingId).then((res) => {
-      console.log(res);
-      tmp = res.status;
-      console.log(res.data);
-      toast.success("Checked In Successfully!", {
-        position: "bottom-left",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
+  const handleCheckIn = (bookingId, dateOfTravelling, timeOfDeparture) => {
+    console.log(bookingId, dateOfTravelling, timeOfDeparture);
+    let travel = new Date(`${dateOfTravelling} ${timeOfDeparture}`).getTime();
+    let now = new Date().getTime();
+    let yesterday = travel - 8.64e7;
+    // let check1 = travel > now;
+    // console.log(travel, now, yesterday);
+    if (travel > now && yesterday < now) {
+      // console.log(true);
+      postCheckIn(bookingId).then((res) => {
+        console.log(res.data);
+        toast.success("Checked In Successfully!", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+        setCheckIn(true);
       });
-      setCheckIn(true);
-    });
-    if (!tmp) {
-      toast.error("Cannot Check in For Given Date!", {
+    } else {
+      toast.error("Cannot Check In Now!", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -84,13 +93,26 @@ const Profile = () => {
     getAllBookingsByUserId(users.userId).then((res) => {
       if (res.status === 200) {
         setBookings(
-          res.data.sort(({ bookingId: a }, { bookingId: b }) => a - b)
+          res.data.sort(
+            (
+              { dateOfTravelling: a, flight: { departureTime: b } },
+              { dateOfTravelling: c, flight: { departureTime: d } }
+            ) =>
+              new Date(`${c} ${d}`).getTime() - new Date(`${a} ${b}`).getTime()
+          )
         );
         setTotalBooking(res.data.length);
         console.log("inside get all users", res.data);
         dispatch(
           GetAllBookings(
-            res.data.sort(({ bookingId: a }, { bookingId: b }) => a - b)
+            res.data.sort(
+              (
+                { dateOfTravelling: a, flight: { departureTime: b } },
+                { dateOfTravelling: c, flight: { departureTime: d } }
+              ) =>
+                new Date(`${c} ${d}`).getTime() -
+                new Date(`${a} ${b}`).getTime()
+            )
           )
         );
         setTasksCompleted(res.data.length);
@@ -100,7 +122,78 @@ const Profile = () => {
     });
 
     console.log("CAlled", users);
-  }, []);
+  }, [checkIn]);
+
+
+  const handleEdit = () => {
+    setDisabled(false)
+    console.log('cllicked edit', disabled)
+    
+  }
+
+  const handleChange = (e) => {
+    e.persist();
+    setUsers(values => ({
+      ...values,
+      [e.target.name]: e.target.value
+    }));
+  }
+
+  const handleCancel = () => {
+    setUsers(trueUser);
+    setDisabled(true)
+    console.log('clicked calcel', disabled)
+  }
+
+  const handleUpdate = () => {
+    
+    updateUser(users).then(
+        
+        (res) => {
+        if(res.status === 200) {
+            toast.success('Successfully updated', {
+                position: "bottom-center",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+              });
+        } else {
+            console.log('error while updating', res.status)
+            toast.error('Failed to update', {
+                position: "bottom-center",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+              });
+        }
+        
+    }).catch((err) => {
+        setUsers(trueUser)
+        console.log('error in updating', err)
+        toast.error('Failed to update', {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
+
+    })
+    setDisabled(true);
+    
+
+  }
 
   // const adminSearch = (obj) => {
   //   // console.log('inside adminSearch', obj)
@@ -130,8 +223,9 @@ const Profile = () => {
       <div>
         <div className="container mx-auto my-5 p-5">
           <div className="md:flex no-wrap md:-mx-2 ">
+
             {/* <!-- Left Side --> */}
-            <div className="w-full md:w-3/12 md:mx-2">
+            <div className="w-full md:w-5/13 md:mx-2">
               {/* <!-- Profile Card --> */}
               <div className="bg-white p-5 rounded-lg bg-gray-900">
                 {/* <div className="image overflow-hidden">
@@ -146,7 +240,7 @@ const Profile = () => {
                 {/* <p className="text-sm text-gray-500 hover:text-gray-600 leading-6">Lorem ipsum dolor sit amet
                         consectetur adipisicing elit.
                         Reprehenderit, eligendi dolorum sequi illum qui unde aspernatur non deserunt</p> */}
-                <ul className="bg-gray-200 text-gray-600 hover:text-gray-700 hover:shadow py-2 px-3 mt-3 divide-y rounded shadow-sm">
+                <ul id = 'profDetails' className="bg-gray-200 text-gray-600 hover:text-gray-700 hover:shadow py-2 px-3 mt-3 divide-y rounded shadow-sm">
                   {/* <li className="flex items-center py-3">
                     <span>Status</span>
                     <span className="ml-auto">
@@ -161,42 +255,98 @@ const Profile = () => {
                         </li> */}
                   <li className="flex items-center py-4">
                     <span className="font-extrabold">Email</span>
-                    <span className="ml-auto">{users.emailId}</span>
+                    {/* <input className="ml-auto"> value = {users.emailId} /> */}
+                    <input id="listItem" name="emailId" type="email" value = {users.emailId} required className="ml-auto" disabled = {disabled} onChange={handleChange}/>
                   </li>
                   <li className="flex items-center py-4">
                     <span className="font-extrabold">Contact no.</span>
-                    <span className="ml-auto">{users.contactNumber}</span>
+                    <input id="listItem" name="contactNumber" type="tel" value = {users.contactNumber} required className="ml-auto" disabled = {disabled} onChange={handleChange}/>
+                    {/* <span className="ml-auto">{users.contactNumber}</span> */}
                   </li>
                   <li className="flex items-center py-4">
                     <span className="font-extrabold">Gender</span>
-                    <span className="ml-auto">{users.gender}</span>
+                    {/* <input id="listItem" name="gender" type="email" value = {users.emailId} required className="ml-auto" disabled = {disabled}/> */}
+                    <select name="gender"  required value={users.gender} className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 transition duration-150 ease-in-out sm:text-sm sm:leading-5" id="listItem" disabled={disabled} onChange={handleChange}>
+                        <option value='' disabled selected>Select Gender</option>
+                        <option>MALE</option>
+                        <option>FEMALE</option>
+                        <option>OTHER</option>
+                      </select>
+                    {/* <span className="ml-auto">{users.gender}</span> */}
                   </li>
                   <li className="flex items-center py-4">
                     <span className="font-extrabold">Date of birth</span>
-                    <span className="ml-auto">{users.dateOfBirth}</span>
+                    <input id="dob" name="dateOfBirth" type="date" max='2015-12-12' value={users.dateOfBirth} required className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 transition duration-150 ease-in-out sm:text-sm sm:leading-5" disabled={disabled} onChange={handleChange}/>
+                    {/* <span className="ml-auto">{users.dateOfBirth}</span> */}
                   </li>
                   <li className="flex items-center py-4">
                     <span className="font-extrabold">Total Bookings</span>
                     <span className="ml-auto">{totalBookings}</span>
                   </li>
-                  {/* <li className="flex items-center py-4">
+                  
+                    {disabled == true ? 
+                    <li className="flex items-center py-4">
                     <span className="block rounded-md shadow-sm justify-center">
-                      <button
+                    <button onClick={handleEdit}
+                      className="w-40 text-md
+          border-2 border-gray-800 py-2 px-4
+          transition-colors ease-out
+          duration-500 text-white
+          bg-blue-800
+          bg-gradient-to-r
+          from-blue-800 
+          rounded-lg
+          hover:from-white hover:to-gray-300 
+          hover:text-black hover:border-white"
+                    >
+                      Edit
+                    </button>
+                    </span>
+                    </li>
+                    : 
+                    <li className="flex items-center py-4">
+                    <span className="block rounded-md shadow-sm justify-center">
+                    <button onClick={handleUpdate}
+                      className="w-40 text-md
+          border-2 border-gray-800 py-2 px-4
+          transition-colors ease-out
+          duration-500 text-white
+          bg-blue-800
+          bg-gradient-to-r
+          from-blue-800 
+          rounded-lg
+          hover:from-white hover:to-gray-300 
+          hover:text-black hover:border-white"
+                    >
+                      Update
+                    </button>
+                    </span>
+                    <span>
+                    <button onClick={handleCancel}
                         className="w-40 text-md
             border-2 border-gray-800 py-2 px-4
             transition-colors ease-out
             duration-500 text-white
-            bg-blue-800
+            bg-red-800
             bg-gradient-to-r
-            from-blue-800 
+            from-red-800 
             rounded-lg
             hover:from-white hover:to-gray-300 
             hover:text-black hover:border-white"
                       >
-                        Update
+                        Cancel
                       </button>
                     </span>
-                  </li> */}
+                    </li>
+                    }
+                    
+                      
+                    
+                    
+                     
+               
+                    
+                  
                 </ul>
               </div>
               {/* {console.log("SAJAL")} */}
@@ -244,7 +394,7 @@ const Profile = () => {
               {/* <!-- End of friends card --> */}
             </div>
             {/* <!-- Right Side --> */}
-            <div className="w-full md:w-9/12 h-4/5 p-4 bg-gray-900 rounded-lg">
+            <div className="w-full md:w-9/12 p-4 bg-gray-900 rounded-lg">
               {/* <!-- Profile tab --> */}
               {/* <!-- About Section --> */}
               <div className="flex items-center space-x-2 font-semibold text-gray-900 leading-8">
@@ -261,7 +411,7 @@ const Profile = () => {
               </div>
               <div className="shadow-sm rounded-sm ">
                 <div className="py-4 overflow-auto">
-                  <div className="container mx-auto shadow-md rounded-lg h-96 overflow-auto">
+                  <div className="w-full shadow-md h-96 overflow-auto">
                     <table className="w-full">
                       <thead className="w-full">
                         <tr>
@@ -277,12 +427,12 @@ const Profile = () => {
                           <th className="font-extrabold px-5 py-3 border-b-2 border-gray-200 bg-gray-400 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
                             Destination
                           </th>
-                          <th className="font-extrabold px-5 py-3 border-b-2 border-gray-200 bg-gray-400 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          {/* <th className="font-extrabold px-5 py-3 border-b-2 border-gray-200 bg-gray-400 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
                             Departure
                           </th>
                           <th className="font-extrabold px-5 py-3 border-b-2 border-gray-200 bg-gray-400 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
                             Arrival
-                          </th>
+                          </th> */}
                           {/* <th
                                         className="font-extrabold px-5 py-3 border-b-2 border-gray-200 bg-gray-400 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider"
                                     >
@@ -301,7 +451,7 @@ const Profile = () => {
                           return (
                             <tr key={booking.bookingId}>
                               <td
-                                className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${
+                                className={`px-5 w-42 py-5 bg-white text-sm ${
                                   index % 2 === 0
                                     ? "bg-gray-200"
                                     : "bg-gray-100"
@@ -310,10 +460,10 @@ const Profile = () => {
                                 <p className="text-gray-900 whitespace-no-wrap">
                                   {booking.bookingId}
                                 </p>
-                                {/* <p className="text-gray-600 whitespace-no-wrap">USD</p> */}
+                                {/* <p className="text-gray-400 text-xs whitespace-no-wrap">USD</p> */}
                               </td>
                               <td
-                                className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${
+                                className={`px-5 py-5 bg-white text-sm ${
                                   index % 2 === 0
                                     ? "bg-gray-200"
                                     : "bg-gray-100"
@@ -330,7 +480,7 @@ const Profile = () => {
                                 </p>
                               </td>
                               <td
-                                className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${
+                                className={`px-5 py-5 bg-white text-sm ${
                                   index % 2 === 0
                                     ? "bg-gray-200"
                                     : "bg-gray-100"
@@ -339,32 +489,18 @@ const Profile = () => {
                                 <p className="text-gray-900 whitespace-no-wrap">
                                   {booking.flight.source.code}
                                 </p>
-                                <p className="text-gray-600 whitespace-no-wrap">
+                                <p className="text-gray-400 text-xs whitespace-no-wrap text-wrap w-40">
                                   {booking.flight.source.name}
                                 </p>
-                                <p className="text-gray-600 whitespace-no-wrap">
+                                <p className="text-gray-400 text-xs whitespace-no-wrap">
                                   {booking.flight.source.city}
                                 </p>
-                              </td>
-                              <td
-                                className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${
-                                  index % 2 === 0
-                                    ? "bg-gray-200"
-                                    : "bg-gray-100"
-                                }`}
-                              >
                                 <p className="text-gray-900 whitespace-no-wrap">
-                                  {booking.flight.destination.code}
-                                </p>
-                                <p className="text-gray-600 whitespace-no-wrap">
-                                  {booking.flight.destination.name}
-                                </p>
-                                <p className="text-gray-600 whitespace-no-wrap">
-                                  {booking.flight.destination.city}
+                                  {booking.flight.departureTime}
                                 </p>
                               </td>
-                              <td
-                                className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${
+                              {/* <td
+                                className={`px-5 py-5 bg-white text-sm ${
                                   index % 2 === 0
                                     ? "bg-gray-200"
                                     : "bg-gray-100"
@@ -373,10 +509,30 @@ const Profile = () => {
                                 <p className="text-gray-900 whitespace-no-wrap">
                                   {booking.flight.departureTime}
                                 </p>
-                                {/* <p className="text-gray-600 whitespace-no-wrap">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p> */}
-                              </td>
+                              </td> */}
                               <td
-                                className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${
+                                className={`px-5 py-5 bg-white text-sm ${
+                                  index % 2 === 0
+                                    ? "bg-gray-200"
+                                    : "bg-gray-100"
+                                }`}
+                              >
+                                <p className="text-gray-900 whitespace-no-wrap">
+                                  {booking.flight.destination.code}
+                                </p>
+                                <p className="text-gray-400 text-xs whitespace-no-wrap text-wrap w-40">
+                                  {booking.flight.destination.name}
+                                </p>
+                                <p className="text-gray-400 text-xs whitespace-no-wrap">
+                                  {booking.flight.destination.city}
+                                </p>
+                                <p className="text-gray-900 whitespace-no-wrap">
+                                  {booking.flight.arrivalTime}
+                                </p>
+                              </td>
+
+                              {/* <td
+                                className={`px-5 py-5 bg-white text-sm ${
                                   index % 2 === 0
                                     ? "bg-gray-200"
                                     : "bg-gray-100"
@@ -385,24 +541,23 @@ const Profile = () => {
                                 <p className="text-gray-900 whitespace-no-wrap">
                                   {booking.flight.arrivalTime}
                                 </p>
-                                {/* <p className="text-gray-600 whitespace-no-wrap">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p> */}
-                              </td>
-                              {/* <td className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${index % 2 === 0 ? "bg-gray-200" : "bg-gray-100"}`}>
+                              </td> */}
+                              {/* <td className={`px-5 py-5 bg-white text-sm ${index % 2 === 0 ? "bg-gray-200" : "bg-gray-100"}`}>
                                 <p className="text-gray-900 whitespace-no-wrap">{booking.destination.code}</p>
-                                <p className="text-gray-600 whitespace-no-wrap">{booking.destination.name}</p>
-                                <p className="text-gray-600 whitespace-no-wrap">{booking.destination.city}</p>
+                                <p className="text-gray-400 text-xs whitespace-no-wrap">{booking.destination.name}</p>
+                                <p className="text-gray-400 text-xs whitespace-no-wrap">{booking.destination.city}</p>
 
                             </td> */}
-                              {/* <td className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${index % 2 === 0 ? "bg-gray-200" : "bg-gray-100"}`}>
-                            <p className="text-gray-600 whitespace-no-wrap">$</p>
+                              {/* <td className={`px-5 py-5 bg-white text-sm ${index % 2 === 0 ? "bg-gray-200" : "bg-gray-100"}`}>
+                            <p className="text-gray-400 text-xs whitespace-no-wrap">$</p>
                                 <p className="text-gray-900 whitespace-no-wrap">{booking.fare}</p>
                             </td> */}
-                              {/* <td className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${index % 2 === 0 ? "bg-gray-200" : "bg-gray-100"}`}>
+                              {/* <td className={`px-5 py-5 bg-white text-sm ${index % 2 === 0 ? "bg-gray-200" : "bg-gray-100"}`}>
                                 <p className="text-gray-900 whitespace-no-wrap">₹8894</p>
-                                <p className="text-gray-600 whitespace-no-wrap"></p>
+                                <p className="text-gray-400 text-xs whitespace-no-wrap"></p>
                             </td> */}
                               <td
-                                className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${
+                                className={`px-5 py-5 bg-white text-sm ${
                                   index % 2 === 0
                                     ? "bg-gray-200"
                                     : "bg-gray-100"
@@ -424,14 +579,26 @@ const Profile = () => {
                                 </span>
                               </td>
                               <td
-                                className={`px-5 py-5 border-b border-gray-200 bg-white text-sm ${
+                                className={`px-5 py-5 bg-white text-sm ${
                                   index % 2 === 0
                                     ? "bg-gray-200"
                                     : "bg-gray-100"
                                 }`}
                               >
                                 <span
-                                  className={`relative inline-block cursor-pointer font-semibold text-green-900 leading-tight hover:scale-110 transform transition duration-200`}
+                                  className={`relative inline-block w-36 cursor-pointer font-semibold ${
+                                    booking.checkedIn
+                                      ? "text-green-900"
+                                      : `${
+                                          new Date(
+                                            `${booking.dateOfTravelling} ${booking.flight.departureTime}`
+                                          ).getTime() -
+                                            new Date().getTime() <
+                                          8.64e7
+                                            ? "text-red-900"
+                                            : "text-yellow-900 hover:scale-110 transform transition duration-200"
+                                        }`
+                                  }  leading-tight`}
                                 >
                                   {/* <span
                                         aria-hidden
@@ -440,16 +607,36 @@ const Profile = () => {
                                   <span
                                     className={`px-2 py-1 ${
                                       booking.checkedIn
-                                        ? "hover:bg-green-500 bg-green-200"
-                                        : "hover:bg-red-500 bg-red-200"
-                                    } hover:text-white transform transition duration-200 rounded-xl`}
+                                        ? "bg-green-500 text-white"
+                                        : `${
+                                            new Date(
+                                              `${booking.dateOfTravelling} ${booking.flight.departureTime}`
+                                            ).getTime() -
+                                              new Date().getTime() <
+                                            8.64e7
+                                              ? "bg-red-500 text-white"
+                                              : "hover:bg-yellow-500 bg-yellow-200 hover:text-white transform transition duration-200"
+                                          }`
+                                    }  rounded-xl`}
                                     onClick={() =>
-                                      handleCheckIn(booking.bookingId)
+                                      handleCheckIn(
+                                        booking.bookingId,
+                                        booking.dateOfTravelling,
+                                        booking.flight.departureTime
+                                      )
                                     }
                                   >
                                     {booking.checkedIn
-                                      ? "CheckedIn"
-                                      : "CheckIn"}
+                                      ? "Checked In"
+                                      : `${
+                                          new Date(
+                                            `${booking.dateOfTravelling} ${booking.flight.departureTime}`
+                                          ).getTime() -
+                                            new Date().getTime() <
+                                          8.64e7
+                                            ? "Failed"
+                                            : "CheckIn Now"
+                                        }`}
                                   </span>
                                 </span>
                               </td>
@@ -461,7 +648,7 @@ const Profile = () => {
                   </div>
                 </div>
                 {/* <button
-                        className="block w-full text-blue-800 text-sm font-semibold rounded-lg hover:bg-gray-100 focus:outline-none focus:shadow-outline focus:bg-gray-100 hover:shadow-xs p-3 my-4">Show
+                        className="block w-full text-red-800 text-sm font-semibold rounded-lg hover:bg-gray-100 focus:outline-none focus:shadow-outline focus:bg-gray-100 hover:shadow-xs p-3 my-4">Show
                         Edit Information</button> */}
               </div>
               {/* <!-- End of about section --> */}

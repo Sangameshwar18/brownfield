@@ -14,3 +14,15 @@ export const getUser = (userDetails) => {
 
   })
 }
+
+export const updateUser = (updatedUser) => {
+  return axios.post(`${userDetailsURL}/updateUser`, {
+    userId: updatedUser.userId,
+    gender: updatedUser.gender,
+    firstName: updatedUser.firstName,
+    lastName: updatedUser.lastName,
+    emailId: updatedUser.emailId,
+    dateOfBirth: updatedUser.dateOfBirth,
+    contactNumber: updatedUser.contactNumber
+  });
+};

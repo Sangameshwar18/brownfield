@@ -3,11 +3,11 @@ import logo from "../../elements/brownfieldlogo.png";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getUser } from "../../api/UserDetailsService";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { getLoggedUser } from "../../redux/user/userActions";
 
 const Navbar = () => {
-  const [user, setUser] = useState("");
+  const [user, setUser] = useState(useSelector((state) => state.user.logged));
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,18 +22,6 @@ const Navbar = () => {
   };
 
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    getUser(localStorage.getItem("USER_KEY"))
-      .then((res) => {
-        console.log(res.data.firstName);
-        setUser(res.data.firstName);
-        dispatch(getLoggedUser(res.data));
-      })
-      .catch((err) => {
-        console.log("ff", err);
-      });
-  }, []);
   console.log(location.pathname);
 
   return (
@@ -107,7 +95,7 @@ const Navbar = () => {
         ) : (
           <div class="flex items-center flex-shrink-0 text-white mr-3">
             <span class="font-semibold text-xl tracking-wide">
-              Hello, {user}!
+              Hello, {user.firstName}!
             </span>
           </div>
         )}

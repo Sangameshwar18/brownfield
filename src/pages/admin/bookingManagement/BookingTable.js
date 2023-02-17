@@ -26,10 +26,6 @@ const BookingTable = ({ bookings, searchBooking, airPorts }) => {
 
   const menuItems = [
     {
-      value: "",
-      code: "Select Time...",
-    },
-    {
       value: "Morning",
       code: "Morning",
     },
@@ -198,10 +194,10 @@ const BookingTable = ({ bookings, searchBooking, airPorts }) => {
                       Source
                     </th>
                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-900 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
-                      Destination
+                      Departure
                     </th>
                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-900 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
-                      Departure
+                      Destination
                     </th>
                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-900 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Arrival

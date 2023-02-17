@@ -100,8 +100,8 @@ const FlightBooking = (res) => {
     flightId: flightData.flightId,
     email: email,
     mobileNo: mobileNo,
-    dateOfTravelling: "2023-02-09",
-    // dateOfTravelling: res.FlightBooking.dateOfTravelling,
+    // dateOfTravelling: "2023-02-09",
+    dateOfTravelling: res.FlightBooking.data.dateOfTravelling,
     passengerInfo: passengerArray,
 
     fare: {
@@ -118,7 +118,7 @@ const FlightBooking = (res) => {
     console.log(data);
     if (data.mobileNo && data.email) {
       dispatch(userFlightBooking(data));
-      // setTmp(true)
+      // setTmp(data);
       navigate("/seats");
     } else {
       toast.error("Enter Details!", {

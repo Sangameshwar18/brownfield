@@ -1,5 +1,5 @@
 import Icon from "./Icon";
-import './componentscss.css'
+import "./componentscss.css";
 
 import {
   LineChart,
@@ -9,18 +9,12 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts'
+} from "recharts";
 
 const Graph = ({ revenue, graph }) => {
-  console.log(graph)
+  console.log(graph);
 
-
-
-  const graphData = [
-    'oct',
-    'dec',
-    'nov'
-  ].map((i) => {
+  const graphData = ["oct", "dec", "nov"].map((i) => {
     const revenue = 500 + Math.random() * 2000;
     const expectedRevenue = Math.max(revenue + (Math.random() - 0.5) * 2000, 0);
     return {
@@ -33,18 +27,19 @@ const Graph = ({ revenue, graph }) => {
   // console.log(graphData)
 
   const CustomTooltip = ({ active, payload }) => (
-    < div className="rounded-xl overflow-hidden tooltip-head" >
+    <div className="rounded-xl overflow-hidden tooltip-head">
       <div className="flex items-center justify-between p-2">
         <div className="">Total Revenue</div>
         <Icon path="res-react-dash-options" className="w-2 h-2" />
       </div>
       <div className="tooltip-body text-center p-3">
-        <div className="text-white font-bold">{active && payload[0].payload.totalRevenue}</div>
+        <div className="text-white font-bold">
+          {active && payload[0].payload.totalRevenue}
+        </div>
         {/* <div className="">Revenue from 230 sales</div> */}
       </div>
-    </div >
+    </div>
   );
-
 
   return (
     <div className="flex p-4 h-full flex-col">
@@ -105,6 +100,6 @@ const Graph = ({ revenue, graph }) => {
       </div>
     </div>
   );
-}
+};
 
 export default Graph;

@@ -138,51 +138,55 @@ const SearchResult = (res) => {
     <div>
       <div className="flex flex-wrap justify-center gap-1 searchnav bg-gray-900 pt-5 pl-5 pr-5 pb-2 ">
         <form onSubmit={filter}>
-          <div className="flex flex-wrap gap-9">
-            <SearchFlight
-              gap="pl-12"
-              name="source"
-              airport={airport}
-              onChange={handleOnChange}
-              className="text-white"
-              placeholder={data.source}
-            />
-            <SearchFlight
-              gap="pl-12"
-              name="destination"
-              airport={airport}
-              onChange={handleOnChange}
-              placeholder={data.destination}
-            />
-            <input
-              className="bg-gray-200 text-gray-900 border-solid border border-white rounded-md pl-2 pr-2 "
-              name="dateOfTravelling"
-              type="date"
-              min={today}
-              value={data.dateOfTravelling}
-              onChange={handleOnChange}
-            />
-            {/* <input className="bg-gray-200 text-gray-900 border-solid border border-white rounded-md pl-2 pr-2 " name="dateOfReturn" type="date" min={today} value={data.dateOfReturn} onChange={handleOnChange} /> */}
-            <select
-              name="noOfPassenger"
-              className="bg-gray-200 text-gray-900 border-solid border border-white rounded-md pl-2 pr-2 w-44"
-              value={data.noOfPassenger}
-              onChange={handleOnChange}
-            >
-              {/* <option value="0">0</option> */}
-              {/* <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option> */}
-              {noOfPassengerArray.map((item, index) => {
-                return <option value={item}>{item}</option>;
-              })}
-            </select>
-            <button
-              type="submit"
-              className="text-md
-               border-2 border-gray-800 px-4
+          <div className="flex flex-wrap gap-4">
+            <div>
+              <SearchFlight
+                gap="pl-12"
+                name="source"
+                airport={airport}
+                onChange={handleOnChange}
+                className="text-white col-spans-2"
+                placeholder={data.source}
+                value={data.source}
+              />
+            </div>
+            <div>
+              <SearchFlight
+                gap="pl-12"
+                name="destination"
+                airport={airport}
+                onChange={handleOnChange}
+                placeholder={data.destination}
+                value={data.destination}
+              />
+            </div>
+            <div>
+              <input
+                className="bg-gray-200 focus:outline-none text-md text-gray-900 w-56 rounded-md py-2 px-2"
+                name="dateOfTravelling"
+                type="date"
+                min={today}
+                value={data.dateOfTravelling}
+                onChange={handleOnChange}
+              />
+            </div>
+            <div>
+              <select
+                name="noOfPassenger"
+                className="bg-gray-200 text-gray-900 text-md w-56 rounded-md py-2 px-2"
+                value={data.noOfPassenger}
+                onChange={handleOnChange}
+              >
+                {noOfPassengerArray.map((item, index) => {
+                  return <option value={item}>{item}</option>;
+                })}
+              </select>
+            </div>
+            <div>
+              <button
+                type="submit"
+                className="text-md
+               border-2 border-gray-800 px-2 py-2 w-24
                transition-colors ease-out
                duration-500 text-white
                bg-blue-800
@@ -191,9 +195,10 @@ const SearchResult = (res) => {
                rounded-lg
                hover:from-white hover:to-gray-300 
                hover:text-black hover:border-white"
-            >
-              Search
-            </button>
+              >
+                Search
+              </button>
+            </div>
           </div>
           <div className="flex flex-nowrap ">
             <span className="block rounded-md shadow-sm"></span>
